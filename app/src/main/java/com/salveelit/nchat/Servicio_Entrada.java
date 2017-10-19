@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.os.IBinder;
 import android.util.Log;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
@@ -14,14 +16,14 @@ import java.net.Socket;
 public class Servicio_Entrada extends Service {
 
     int mStartMode,port=6789;
-    /*ServerSocket serverSocket=null;
-    Socket clientSocket=null;
+    ServerSocket serverSocket=null;
+    Socket socket=null;
     //ServerThread serverThread = new ServerThread(clientSocket);
-    Thread serverThread=new Thread(new ServerThread(clientSocket));*/
+
 
     @Override
     public void onCreate(){
-        /*try{
+        try{
             serverSocket=new ServerSocket(port);
             Log.i("Open Socket:","Listo para recibir");
         }catch (IOException e){
@@ -30,15 +32,17 @@ public class Servicio_Entrada extends Service {
         }
         while(true){
             try{
-                clientSocket=serverSocket.accept();
+                socket=serverSocket.accept();
                 Log.i("Conn Socket:","Conectado");
 
-                serverThread.start();
+                ServerThread serverThread= new ServerThread(socket);
+
+                new Thread(serverThread).start();
 
             }catch (IOException e){
                 Log.e("Conn Socket:","Fallo enlace con cliente");
             }
-        }*/
+        }
 
     }
     @Override
@@ -54,6 +58,29 @@ public class Servicio_Entrada extends Service {
     @Override
     public void onDestroy(){
         //serverThread.stop;
+    }
+    class ServerThread implements Runnable{
+        private Socket socket;
+        private BufferedReader imput;
+
+        public ServerThread(Socket socket) {
+            this.socket = socket;
+
+            try {
+                imput = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            } catch (IOException e) {
+                Log.e("Hilo servicio:","Error al leer");
+            }
+        }
+        public void run(){
+            while(!Thread.currentThread().isInterrupted()){
+                try{
+                    String read= imput.readLine();
+                }catch(IOException e){
+                    Log.e("Hilo_Run: ","Error al leer mensaje");
+                }
+            }
+        }
     }
     /*class ServerThread implements Runnable {
         ObjectInputStream in;
